@@ -2,12 +2,23 @@ import pandas as pd
 import streamlit as st
 from PIL import Image
 from PIL.ExifTags import TAGS
+from fractions import Fraction
 
 def extract_geolocation(exifdata):
     gps_info = exifdata.get(34853)  # EXIF tag for GPS information
     if gps_info:
-        lat = gps_info[2][0] + gps_info[2][1] / 60 + gps_info[2][2] / 3600
-        lon = gps_info[4][0] + gps_info[4][1] / 60 + gps_info[4][2] / 3600
+        def convert_to_degrees(value):
+            d = float(value[0])
+            m = float(value[1])
+            s = float(value[2])
+            return d + (m / 60.0) + (s / 3600.0)
+
+        lat = convert_to_degrees(gps_info[2])
+        lon = convert_to_degrees(gps_info[4])
+        if gps_info[1] == 'S':  # South latitude
+            lat = -lat
+        if gps_info[3] == 'W':  # West longitude
+            lon = -lon
         return lat, lon
     return None
 
@@ -67,4 +78,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
